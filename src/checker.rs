@@ -4,7 +4,7 @@ use trust_dns_resolver::{
     TokioAsyncResolver,
 };
 
-const STARLINK_ROOT_DOMAIN_NAME: &str = "starlinkisp.net.";
+const STARLINK_ROOT_DOMAIN_NAME: &str = "starlinkisp.net";
 
 pub async fn resolve_ptr(addr: IpAddr) -> Vec<String> {
     let resolver = TokioAsyncResolver::tokio(ResolverConfig::cloudflare(), ResolverOpts::default())
@@ -16,7 +16,7 @@ pub async fn resolve_ptr(addr: IpAddr) -> Vec<String> {
         Ok(response) => {
             let mut result = Vec::new();
             for name in response.iter() {
-                result.push(name.to_string());
+                result.push(name.to_string().trim_end_matches(".").to_string());
             }
             result
         }
@@ -25,8 +25,9 @@ pub async fn resolve_ptr(addr: IpAddr) -> Vec<String> {
 }
 
 pub fn contains_starlink(names: &[String]) -> bool {
+    let starlink_domain_check = &format!(".{}", STARLINK_ROOT_DOMAIN_NAME);
     for name in names {
-        if name.ends_with(STARLINK_ROOT_DOMAIN_NAME) {
+        if name.ends_with(starlink_domain_check) {
             return true;
         }
     }
