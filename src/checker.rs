@@ -1,24 +1,23 @@
-use std::str::FromStr;
+use trust_dns_resolver::{
+    config::{ResolverConfig, ResolverOpts},
+    TokioAsyncResolver,
+};
+use std::net::IpAddr;
 
-use trust_dns_client::client::{Client, SyncClient, AsyncClient};
-use trust_dns_client::op::DnsResponse;
-use trust_dns_client::rr::{DNSClass, Name, RData, Record, RecordType};
-use trust_dns_client::udp::UdpClientConnection;
+const STARLINK_ROOT_DOMAIN_NAME: &str = "starlinkisp.net.";
 
-const STARLINK_ROOT_DOMAIN_NAME: &str = "starlinkisp.net";
+pub async fn resolve_ptr(addr: IpAddr) -> Vec<String> {
+    let resolver = TokioAsyncResolver::tokio(ResolverConfig::cloudflare(), ResolverOpts::default())
+        .expect("failed to connect resolver");
 
-pub fn resolve_ptr(hostname: String) -> Vec<String> {
-    let conn = UdpClientConnection::new("1.1.1.1:53".parse().unwrap()).unwrap();
-    let (client, bg) = AsyncClient::connect(conn.into()).await.unwrap();
-    let name = Name::from_str(&hostname).unwrap();
-    let response = client.query(&name, DNSClass::IN, RecordType::PTR).unwrap();
-    let answers = response.answers();
+    let response = resolver
+        .reverse_lookup(addr)
+        .await
+        .unwrap();
 
     let mut result = Vec::new();
-    for answer in answers {
-        if let Some(RData::PTR(ref name)) = answer.data() {
-            result.push(name.to_string());
-        }
+    for name in response.iter() {
+        result.push(name.to_string());
     }
     result
 }
