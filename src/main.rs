@@ -9,7 +9,7 @@ use axum::{
     routing::get,
     Json, Router, Server,
 };
-use axum_client_ip::{SecureClientIp, SecureClientIpSource};
+use axum_client_ip::XRealIp;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 
@@ -33,7 +33,7 @@ struct SuccessJsonResponse {
 }
 
 async fn index_html_handler(
-    secure_addr: SecureClientIp,
+    secure_addr: XRealIp,
     query_param: Query<QueryParam>,
 ) -> (StatusCode, Html<String>) {
     let remote_addr = secure_addr.0;
@@ -59,7 +59,7 @@ async fn index_html_handler(
 }
 
 async fn json_handler(
-    secure_addr: SecureClientIp,
+    secure_addr: XRealIp,
     query_param: Query<QueryParam>,
 ) -> (StatusCode, Response) {
     let remote_addr = secure_addr.0;
@@ -98,8 +98,7 @@ async fn json_handler(
 async fn main() {
     let app = Router::new()
         .route("/", get(index_html_handler))
-        .route("/json", get(json_handler))
-        .layer(SecureClientIpSource::ConnectInfo.into_extension());
+        .route("/json", get(json_handler));
 
     Server::bind(
         &format!(
@@ -112,7 +111,7 @@ async fn main() {
         .parse()
         .unwrap(),
     )
-    .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+    .serve(app.into_make_service())
     .await
     .unwrap();
 }
