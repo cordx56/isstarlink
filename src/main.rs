@@ -101,8 +101,18 @@ async fn main() {
         .route("/json", get(json_handler))
         .layer(SecureClientIpSource::ConnectInfo.into_extension());
 
-    Server::bind(&"0.0.0.0:3000".parse().unwrap())
-        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
-        .await
-        .unwrap();
+    Server::bind(
+        &format!(
+            "0.0.0.0:{}",
+            match std::env::var("PORT") {
+                Ok(port_str) => port_str,
+                Err(_) => "3000".to_string(),
+            }
+        )
+        .parse()
+        .unwrap(),
+    )
+    .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+    .await
+    .unwrap();
 }
