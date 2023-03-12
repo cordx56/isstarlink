@@ -102,10 +102,7 @@ async fn main() {
     Server::bind(
         &format!(
             "0.0.0.0:{}",
-            match std::env::var("PORT") {
-                Ok(port_str) => port_str,
-                Err(_) => "3000".to_string(),
-            }
+            std::env::var("PORT").unwrap_or("3000".to_string()),
         )
         .parse()
         .unwrap(),

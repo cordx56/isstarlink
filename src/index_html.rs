@@ -14,16 +14,38 @@ pub fn generate_index_html(
     } else {
         "You are not connecting from Starlink network."
     };
+    let query_addr_len = query_domain.len();
+    let mut query_addrs = "".to_string();
+    for domain in query_domain {
+        query_addrs = format!("{query_addrs}<td>{domain}</td>");
+    }
     format!(
         r###"<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>{title}</title>
-  </head>
-  <body>
-    <h1>{main_message}</h1>
-  </body>
-</html>"###
+        <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>{title}</title>
+          </head>
+          <body>
+            <h1>{main_message}</h1>
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Query IP Address</th>
+                        <td>{query_addr}</td>
+                    </tr>
+                    <tr>
+                        <th>Remote IP Address</th>
+                        <td>{remote_addr}</td>
+                    </tr>
+                    <tr>
+                        <th rowspan="{query_addr_len}">Query Domains</th>
+                        {query_addrs}
+                    </tr>
+                </tbody>
+            </table>
+          </body>
+        </html>
+        "###
     )
 }
