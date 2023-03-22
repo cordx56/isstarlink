@@ -11,6 +11,7 @@ use axum::{
 };
 use axum_client_ip::LeftmostXForwardedFor;
 use serde::{Deserialize, Serialize};
+use tower_http::cors::CorsLayer;
 
 #[derive(Deserialize)]
 struct QueryParam {
@@ -97,7 +98,7 @@ async fn json_handler(
 async fn main() {
     let app = Router::new()
         .route("/", get(index_html_handler))
-        .route("/json", get(json_handler));
+        .route("/json", get(json_handler).layer(CorsLayer::permissive()));
 
     Server::bind(
         &format!(
