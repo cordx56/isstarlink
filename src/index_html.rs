@@ -23,6 +23,7 @@ pub fn generate_index_html(
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{title}</title>
     <style>
       .red {{
@@ -34,6 +35,9 @@ pub fn generate_index_html(
     <h1>{main_message}</h1>
     <p>
       <a href="/json">You can use JSON format data.</a>
+    </p>
+    <p>
+      Source code: <a href="https://github.com/cordx56/isstarlink/" target="_blank" rel="noreferrer">https://github.com/cordx56/isstarlink/</a>
     </p>
     <table>
         <tbody>
