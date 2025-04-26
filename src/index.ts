@@ -66,6 +66,36 @@ const html = (
 </html>
 `;
 
+const formatIpv6 = (addr: string): string => {
+  const sections = addr.split(":");
+  if (sections.includes("")) {
+    const count = 8 - sections.length + 1;
+    const index = sections.indexOf("");
+    sections.splice(index, 1);
+    for (let i = 0; i < count; i++) {
+      sections.splice(index, 0, "0");
+    }
+  }
+  for (let i = 0; i < sections.length; i++) {
+    for (let j = sections[i].length; j < 4; j++) {
+      sections[i] = "0" + sections[i];
+    }
+  }
+  return sections.join(":");
+};
+
+const ipArpa = (addr: string): string => {
+  if (addr.includes(":")) {
+    return [
+      ...addr.replaceAll(":", "").split("").reverse(),
+      "ip6",
+      "arpa.",
+    ].join(".");
+  } else {
+    return [...addr.split(".").reverse(), "in-addr", "arpa."].join(".");
+  }
+};
+
 export default {
   async fetch(req, _env, _ctx): Promise<Response> {
     try {
@@ -73,11 +103,13 @@ export default {
       const query_addr = url.searchParams.get("addr")?.trim();
       const remote_addr = req.headers.get("CF-Connecting-IP")?.trim();
       if (remote_addr) {
-        const addr = query_addr || remote_addr;
+        let addr = query_addr || remote_addr;
         if (addr) {
-          const reversed = addr.split(".").reverse().join(".");
+          if (addr.includes(":")) {
+            addr = formatIpv6(addr);
+          }
           const resp = await query("cloudflare-dns.com", {
-            name: `${reversed}.in-addr.arpa.`,
+            name: ipArpa(addr),
             type: "PTR",
           });
           if (resp) {
@@ -106,7 +138,7 @@ export default {
           }
         }
       }
-      return Response.json({ success: false });
+      return Response.json({ success: false, query_addr, remote_addr });
     } catch (e) {
       return Response.json({ success: false, message: `${e}` });
     }
